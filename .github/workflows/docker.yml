@@ -9,14 +9,14 @@ env:
   CI_REGISTRY: "reg.vados.ru"
 
 on:
-  workflow_call:
-    branches:
-      - "**"
-    tags:
-      - "v*.*.*"
+  #  workflow_call:
+  #    branches:
+  #      - "**"
+  #    tags:
+  #      - "v*.*.*"
 
-  schedule:
-    - cron: "17 * * 3 1"
+  #  schedule:
+  #    - cron: "17 * * 3 1"
 
   workflow_dispatch:
     inputs:
@@ -26,7 +26,8 @@ on:
         default: "alpine"
         type: string
       build_platforms:
-        description: "Platforms for build images (e.g. linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7)"
+        description: "Platforms for build images (e.g.
+          linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7)"
         required: true
         default: "linux/amd64"
         type: string
@@ -88,7 +89,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-          
 #        uses: docker/login-action@v2
 #        with:
 #          registry: reg.vados.ru
@@ -113,4 +113,3 @@ jobs:
 #            - registry: ghcr.io
 #              username: ${{ github.actor }}
 #              password: ${{ secrets.GITHUB_TOKEN }}
-
