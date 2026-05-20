@@ -139,6 +139,14 @@ jobs:
             type=pep440,pattern={{raw}}
             type=pep440,pattern={{majorr}}.{{minor}}
             type=raw,value=latest
+          labels: |
+            maintainer={{ github.actor }}
+            org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
+            org.opencontainers.image.revision={{commit_short}}
+            org.opencontainers.image.version={{version}}
+            org.opencontainers.image.url={{url}}
+            org.opencontainers.image.source={{url}}
+            org.opencontainers.image.documentation={{url}}
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
