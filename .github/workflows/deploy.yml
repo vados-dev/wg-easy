@@ -93,8 +93,8 @@ jobs:
         with:
           context: .
           platforms: ${{ matrix.arch.platform }}
-          tags: ghcr.io/vados-dev/wg-easy
           labels: ${{ steps.meta.outputs.labels }}
+          tags: ghcr.io/wg-easy/wg-easy
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=build-${{ env.PLATFORM_PAIR }}
           cache-to: type=gha,mode=min,scope=build-${{ env.PLATFORM_PAIR }}
