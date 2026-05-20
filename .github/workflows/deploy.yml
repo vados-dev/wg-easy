@@ -26,7 +26,7 @@ on:
       from_tag:
         description: "Build tag for the Docker image"
         required: true
-        default: "15.0.3"
+        default: "v15.0.3rb"
         type: string
 
 # This workflow does not support fixing old versions
