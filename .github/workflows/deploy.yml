@@ -16,7 +16,7 @@ on:
         description: "Build platforms e.g. linux/amd64, linux/arm64, linnux/arm/v7... etc."
         required: true
         default: "linux/amd64 linux/arm64"
-        type: text
+        type: string
       force_build:
         description: "Force build or generate-matrix even if version is unchanged"
         required: true
