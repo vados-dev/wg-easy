@@ -9,7 +9,7 @@ env:
   CI_REGISTRY: "reg.vados.ru"
 
 on:
-  #  workflow_call:
+    workflow_call:
   #    branches:
   #      - "**"
   #    tags:
