@@ -131,9 +131,13 @@ jobs:
           images: |
             ghcr.io/vados-dev/wg-easy
           flavor: |
-            latest=false
+            latest=auto
           tags: |
-            type=raw,val=${inputs.from_tag}}
+            type=ref,event=tag
+            type=raw,val=lts
+            type=semver,pattern={{version}}
+            type=pep440,pattern={{raw}}
+            type=pep440,pattern={{majorr}}.{{minor}}.{{patch}}
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
