@@ -8,8 +8,8 @@ env:
   DEFAULT_PUBLISH_REPOS: true
 
 on:
-#  schedule:
-#    - cron: "17 * * 3 1"
+  #  schedule:
+  #    - cron: "17 * * 3 1"
   workflow_dispatch:
     inputs:
       build_platform:
@@ -41,8 +41,8 @@ jobs:
         arch:
           - platform: linux/amd64
             os: ubuntu-latest
-          - platform: linux/arm64
-            os: ubuntu-24.04-arm
+          #- platform: linux/arm64
+          #  os: ubuntu-24.04-arm
           # - platform: linux/arm/v7
           #   os: ubuntu-24.04-arm
     steps:
