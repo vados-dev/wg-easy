@@ -4,8 +4,8 @@ permissions:
   contents: write
   packages: write
 
-env:
-  DEFAULT_PUBLISH_REPOS: true
+#env:
+#  DEFAULT_PUBLISH_REPOS: true
 
 on:
   #  workflow_call:
@@ -42,8 +42,8 @@ jobs:
         arch:
           - platform: linux/amd64
             os: ubuntu-latest
-          #- platform: linux/arm64
-          #  os: ubuntu-24.04-arm
+          - platform: linux/arm64
+            os: ubuntu-24.04-arm
           # - platform: linux/arm/v7
           #   os: ubuntu-24.04-arm
     steps:
@@ -83,7 +83,7 @@ jobs:
           context: .
           platforms: ${{ matrix.arch.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          tags: ${{steps.meta.outputs.images}}
+          tags: ghcr.io/vados-dev/wg-easy
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=build-${{ env.PLATFORM_PAIR }}
           cache-to: type=gha,mode=min,scope=build-${{ env.PLATFORM_PAIR }}
