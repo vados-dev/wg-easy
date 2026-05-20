@@ -1,0 +1,7 @@
+af_packet
+ipv6
+wireguard
+iptable_nat
+ip6table_nat
+iptable_filter
+ip6table_filter
