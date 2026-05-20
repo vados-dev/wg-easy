@@ -1,8 +1,0 @@
-[
-  {
-    "workflow": "deploy.yml",
-    "command": "act workflow_dispatch -W .github/workflows/deploy.yml",
-    "success": true,
-    "timestamp": "2026-05-20T09:12:25.893Z"
-  }
-]
