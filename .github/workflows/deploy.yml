@@ -60,11 +60,8 @@ jobs:
         with:
           images: |
             ghcr.io/vados-dev/wg-easy
-          tags: |
-            type=ref,event=tag
-            type=pep440,pattern={{raw}}
-            type=pep440,pattern={{majorr}}.{{minor}}.{{patch}}
-            type=raw,${{ inputs.build_tag }}
+          flavor: |
+            latest=false
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
@@ -86,7 +83,7 @@ jobs:
           context: .
           platforms: ${{ matrix.arch.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          tags: ghcr.io/vados-dev/wg-easy
+          tags: ${{steps.meta.outputs.images}}
           outputs: type=image,push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=build-${{ env.PLATFORM_PAIR }}
           cache-to: type=gha,mode=min,scope=build-${{ env.PLATFORM_PAIR }}
@@ -135,11 +132,13 @@ jobs:
             ghcr.io/vados-dev/wg-easy
           tags: |
             type=ref,event=tag
+            type=raw,{{inputs.build_tag}}
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}.{{minor}}.{{patch}}
           labels: |
             org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
+            org.opencontainers.image.url=https://{{steps.meta.outputs.images}}:{{steps.meta.outputs.tags}}
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
