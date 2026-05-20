@@ -93,9 +93,11 @@ jobs:
         with:
           context: .
           platforms: ${{ matrix.arch.platform }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ghcr.io/vados-dev/wg-easy
           labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=build-${{ env.PLATFORM_PAIR }}
+          cache-to: type=gha,mode=min,scope=build-${{ env.PLATFORM_PAIR }}
 
       - name: Export digest
         run: |
@@ -111,23 +113,6 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-#          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
-#          cache-from: type=gha,scope=build-${{ env.PLATFORM_PAIR }}
-#          cache-to: type=gha,mode=min,scope=build-${{ env.PLATFORM_PAIR }}
-#
-#      - name: Export digest
-#        run: |
-#          mkdir -p ${{ runner.temp }}/digests
-#          digest="${{ steps.build.outputs.digest }}"
-#          touch "${{ runner.temp }}/digests/${digest#sha256:}"
-#
-#      - name: Upload digest
-#        uses: actions/upload-artifact@v7
-#        with:
-#          name: digests-${{ env.PLATFORM_PAIR }}
-#          path: ${{ runner.temp }}/digests/*
-#          if-no-files-found: error
-#          retention-days: 1
 #
 #      - name: Upload artifacts
 #        uses: actions/upload-artifact@v7
