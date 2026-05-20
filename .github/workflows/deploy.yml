@@ -130,15 +130,10 @@ jobs:
         with:
           images: |
             ghcr.io/vados-dev/wg-easy
+          flavor: |
+            latest=false
           tags: |
-            type=ref,event=tag
-            type=raw,{{inputs.build_tag}}
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}
-            type=semver,pattern={{major}}.{{minor}}.{{patch}}
-          labels: |
-            org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
-            org.opencontainers.image.url=https://{{steps.meta.outputs.images}}:{{steps.meta.outputs.tags}}
+            type=raw,val=${inputs.from_tag}}
 
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
