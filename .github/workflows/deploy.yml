@@ -49,7 +49,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{inputs.from_branch}}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.from_branch || env.DEFAULT_BRANCH }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -68,7 +68,7 @@ jobs:
         id: build
         env:
           TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.build_tag || 'lts' }}
-          IMAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.build_image || ${{ env.REGISTRY_IMAGE }} }}
+          IMAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.build_image || env.REGISTRY_IMAGE }}
         uses: docker/build-push-action@v7
         with:
           context: .
