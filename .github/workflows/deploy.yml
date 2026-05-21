@@ -1,4 +1,4 @@
-name: Build & Deploy
+name: Build & Deploy v15
 
 env:
   DEFAULT_BRANCH: master
