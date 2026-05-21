@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>nginx-custom-builder</title>
+  <style>
+    :root { color-scheme: light; }
+    body { margin: 0; font-family: "Segoe UI", Roboto, sans-serif; background: #f6f8fa; color: #111827; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+    .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; }
+    h1 { margin: 0 0 12px; font-size: 28px; }
+    .muted { color: #6b7280; margin-bottom: 16px; }
+    .links { margin: 0 0 18px; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 10px; }
+    .links a, .links a:visited, .links a:hover, .links a:focus-visible { text-decoration: none; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 10px; color: #ff0000 !important; background: #f9fafb; }
+    .quick { margin: 0 0 18px; padding: 0; list-style: none; }
+    .quick li { margin: 6px 0; }
+    .quick a, .quick a:visited, .quick a:hover, .quick a:focus-visible { color: #ff0000 !important; text-decoration: none; }
+    #readme a, #readme a:visited, #readme a:hover, #readme a:focus-visible { color: #ff0000 !important; }
+    #readme { line-height: 1.55; overflow-wrap: anywhere; }
+    #readme pre { background: #0b1020; color: #e5e7eb; border-radius: 8px; padding: 12px; overflow-x: auto; }
+    #readme code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    #readme table { border-collapse: collapse; }
+    #readme th, #readme td { border: 1px solid #e5e7eb; padding: 6px 8px; }
+  </style>
+</head>
+<body>
+  <!-- body content -->
+<main class="wrap">
+  <section class="card">
+    <h1>nginx-custom-builder</h1>
+    <p class="muted">Автогенерируемая страница из README.md (ветка gh-pages).</p>
+    <ul class="links">
+<li><a href="./repo/">DNF/DEB/APK repo</a></li>
+<li><a href="./README.md">Raw README.md</a></li>
+    </ul>
+    <ul class="quick">
+<li><a href="./repo/centos/10/mainline/x86_64/">DNF mainline (CentOS 10 x86_64)</a></li>
+<li><a href="./repo/centos/10/stable/x86_64/">DNF stable (CentOS 10 x86_64)</a></li>
+<li><a href="./repo/debian/bookworm/mainline/binary-amd64/">DEB mainline (Debian 12 x86_64)</a></li>
+<li><a href="./repo/debian/bookworm/stable/binary-amd64/">DEB stable (Debian 12 x86_64)</a></li>
+<li><a href="./repo/alpine/v3.20/mainline/x86_64/">APK mainline (Alpine v3.20 x86_64)</a></li>
+<li><a href="./repo/alpine/v3.20/stable/x86_64/">APK stable (Alpine v3.20 x86_64)</a></li>
+    </ul>
+    <article id="readme">Загрузка README...</article>
+  </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+  const titlePrefix = "[ vados-dev ] :: ";
+
+  function updateDocumentTitle() {
+    const heading = document.querySelector("#readme h1, #readme h2, .card h1, .card h2");
+    if (!heading) return;
+    const text = heading.textContent.trim();
+    if (!text) return;
+    document.title = titlePrefix + text;
+  }
+
+  async function render() {
+    const target = document.getElementById("readme");
+    try {
+      const res = await fetch("./README.md", { cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const md = await res.text();
+      target.innerHTML = marked.parse(md);
+      updateDocumentTitle();
+    } catch (e) {
+      target.textContent = "Не удалось загрузить README.md: " + e.message;
+      updateDocumentTitle();
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", render, { once: true });
+  } else {
+    render();
+  }
+</script>
+</body>
+</html>
