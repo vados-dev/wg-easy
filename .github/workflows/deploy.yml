@@ -17,10 +17,15 @@ on:
   #     - cron: "17 * * 3 1"
   workflow_dispatch:
     inputs:
+      from_branch:
+        description: "Branch for build and deploy"
+        required: true
+        default: "master"
+        type: string
       build_images:
         description: "Image name for buld targrest."
         required: true
-        default: wg-easy
+        default: "wg-easy"
         type: string
       build_tag:
         description: "Build tag for the Docker image"
@@ -41,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{inputs.}}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
