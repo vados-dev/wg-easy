@@ -1,4 +1,4 @@
-name: Development
+name: Deploy Development
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ jobs:
   docker-build:
     name: Build Docker
     runs-on: ${{ matrix.arch.os }}
-    if: github.repository_owner == 'wg-easy'
+    if: github.repository_owner == 'vados-dev'
     permissions:
       packages: write
     strategy:
