@@ -1,14 +1,15 @@
 name: Publish Docker
 on:
-  push:
-    branches: [ "master" ]
-    tags: [ "[0-9]+.[0-9]+.[0-9]+" ]
+  workflow_dispatch: 
+#  push:
+#    branches: [ "master" ]
+#    tags: [ "[0-9]+.[0-9]+.[0-9]+" ]
 env:
   REGISTRY_IMAGE: oxidized/oxidized
 
 jobs:
   build:
-    if: github.repository_owner == 'ytti'
+    if: github.repository_owner == 'vados-dev'
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
