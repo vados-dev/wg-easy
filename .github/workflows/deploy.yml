@@ -2,7 +2,8 @@ name: Build & Deploy
 
 env:
   DEFAULT_BRANCH: master
-  REGISTRY_IMAGE: ghcr.io/vados-dev/wg-easy
+  DEFAULT_IMAGE: wg-easy
+  REGISTRY_IMAGE: ghcr.io/vados-dev/${{ env.DEFAULT_IMAGE }}
 #  DEFAULT_PUBLISH_REPOS: true
 
 on:
@@ -20,10 +21,10 @@ on:
         required: true
         default: "master"
         type: string
-      build_images:
-        description: "Image name for buld targrest."
+      build_image:
+        description: "Image name for buld."
         required: true
-        default: "wg-easy"
+        default: "ghcr.io/vados-dev/wg-easy"
         type: string
       build_tag:
         description: "Build tag for the Docker image"
@@ -65,16 +66,16 @@ jobs:
 
       - name: Build and push Docker image
         id: build
+        env:
+          TAG: {{ github.event_name == 'workflow_dispatch' && inputs.build_tag || 'lts' }}
+          IMAGE: {{ github.event_name == 'workflow_dispatch' && inputs.build_image || ${{ env.REGISTRY_IMAGE }} }}
         uses: docker/build-push-action@v7
         with:
           context: .
           platforms: ${{inputs.build_platforms}}
           cache-from: type=gha,scope=build-${{ env.PLATFORM_PAIR }}
           cache-to: type=gha,mode=min,scope=build-${{ env.PLATFORM_PAIR }}
-          tags: |
-            - ghcr.io/vados-dev/${{inputs.build_images}}:latest
-              ghcr.io/vados-dev/${{inputs.build_images}}:${{inputs.build_tag}}
-              ${{ env.REGISTRY_IMAGE }}
+          tags: ${{env.IMAGE}}:${{envTAG}}
           labels: |
             - ${{ steps.build.outputs.labels }}
               maintainer={{ github.actor }}
