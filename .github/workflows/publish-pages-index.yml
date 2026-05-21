@@ -5,15 +5,15 @@ permissions:
 
 on:
   workflow_call:
-  push:
-    branches:
-      - master
-    paths:
-      - README.md
-      - .github/workflows/publish-pages-index.yml
+#  push:
+#    branches:
+#      - master
+#    paths:
+#      - README.md
+#      - .github/workflows/publish-pages-index.yml
 #      - .github/pages/site.json
 #      - SOURCES/gh-pages.tar.gz
-  workflow_dispatch:
+#  workflow_dispatch:
 
 jobs:
   publish-index:
