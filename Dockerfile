@@ -102,13 +102,13 @@ RUN apk add --update --no-cache \
     dumb-init \
     iptables \
     iptables-legacy \
+    nftables \
+    kmod \
+    wireguard-go \
     wireguard-tools \
     mc
 
 #    ip6tables \
-#    nftables \
-#    kmod \
-#    wireguard-go \
 
 # Copy mc profile
 ADD assets/mc.tar.gz /root/.config
