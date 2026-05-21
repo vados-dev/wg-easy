@@ -1,4 +1,4 @@
-name: Deploy
+name: Build & Publish Latest
 
 permissions:
   contents: write
@@ -11,149 +11,57 @@ on:
   #  workflow_call:
   push:
     branches:
-      - "**"
+      - "main"
     tags:
       - "v*.*."
   #   schedule:
   #     - cron: "17 * * 3 1"
   workflow_dispatch:
     inputs:
-      force_build:
-        description: "Force build or generate-matrix even if version is unchanged"
+      build_images:
+        description: "Image name for buld targrest."
         required: true
-        default: true
-        type: boolean
-      from_tag:
+        default: wg-easy
+        type: string
+      build_tag:
         description: "Build tag for the Docker image"
         required: true
-        default: "v15.0.3rb"
+        default: "v15-rb.lts"
+        type: string
+      build_platforms:
+        description: "Build platforms e.g. (linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8)"
+        required: true
+        default: "linux/amd64"
         type: string
 
-# This workflow does not support fixing old versions
-# as this will break the latest and major tags
-
 jobs:
-  docker-build:
-    name: Build Docker
-    runs-on: ${{ matrix.arch.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        arch:
-          - platform: linux/amd64
-            os: ubuntu-latest
-          - platform: linux/arm64
-            os: ubuntu-24.04-arm
-          # - platform: linux/arm/v7
-          #   os: ubuntu-24.04-arm
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Prepare
-        run: |
-          platform=${{ matrix.arch.platform }}
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: |
-            ghcr.io/vados-dev/wg-easy
-          flavor: |
-            latest=false
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build and push by digest
-        id: build
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          platforms: ${{ matrix.arch.platform }}
-          labels: ${{ steps.meta.outputs.labels }}
-          tags: ghcr.io/vados-dev/wg-easy
-          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
-          cache-from: type=gha,scope=build-${{ env.PLATFORM_PAIR }}
-          cache-to: type=gha,mode=min,scope=build-${{ env.PLATFORM_PAIR }}
-
-      - name: Export digest
-        run: |
-          mkdir -p ${{ runner.temp }}/digests
-          digest="${{ steps.build.outputs.digest }}"
-          touch "${{ runner.temp }}/digests/${digest#sha256:}"
-
-      - name: Upload digest
-        uses: actions/upload-artifact@v7
-        with:
-          name: digests-${{ env.PLATFORM_PAIR }}
-          path: ${{ runner.temp }}/digests/*
-          if-no-files-found: error
-          retention-days: 1
-
-  docker-merge:
-    name: Merge & Deploy Docker
+  deploy:
+    name: Build & Deploy
     runs-on: ubuntu-latest
-    needs: docker-build
+    permissions:
+      packages: write
+      contents: read
     steps:
-      - name: Download digests
-        uses: actions/download-artifact@v8
-        with:
-          path: ${{ runner.temp }}/digests
-          pattern: digests-*
-          merge-multiple: true
+    - uses: actions/checkout@v4
+      with:
+        ref: main
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v6
-        with:
-          images: |
-            ghcr.io/vados-dev/wg-easy
-          flavor: |
-            latest=auto
-          tags: |
-            type=ref,event=tag
-            type=raw,value=${{inputs.from_tag}}
-            type=semver,pattern={{version}}
-            type=pep440,pattern={{raw}}
-            type=pep440,pattern={{majorr}}.{{minor}}
-            type=raw,value=latest
-          labels: |
-            maintainer={{ github.actor }}
-            org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
-            org.opencontainers.image.revision={{commit_short}}
-            org.opencontainers.image.version={{version}}
-            org.opencontainers.image.url={{url}}
-            org.opencontainers.image.source={{url}}
-            org.opencontainers.image.documentation={{url}}
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create manifest list and push
-        working-directory: ${{ runner.temp }}/digests
-        run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf 'ghcr.io/vados-dev/wg-easy@sha256:%s ' *)
-
-      - name: Inspect image
-        run: |
-          docker buildx imagetools inspect ghcr.io/vados-dev/wg-easy:${{ steps.meta.outputs.version }}
+    - name: Build & Publish Docker Image
+      uses: docker/build-push-action@v6
+      with:
+        push: true
+        platforms: ${{inputs.build_platforms}}
+        tags: ghcr.io/vados-dev/${{inputs.build_images}}:latest, ghcr.io/vados-dev/${{inputs.build_images}}:${{inputs.build_tag}}

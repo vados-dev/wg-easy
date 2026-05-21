@@ -11,7 +11,7 @@ ARG FROM_PATH
 ARG FROM_TAG
 ARG FROM_IMAGE
 
-#ENV DISABLE_IPV6=true
+ENV DISABLE_IPV6=true
 
 WORKDIR /app
 
@@ -46,7 +46,7 @@ ARG FROM_PATH
 ARG FROM_TAG
 ARG FROM_IMAGE
 
-#ENV DISABLE_IPV6=true
+ENV DISABLE_IPV6=true
 
 WORKDIR /app
 RUN npm install --no-save --omit=dev libsql
@@ -65,7 +65,7 @@ ARG BUILD_OWNER="AmsterNL"
 ARG BUILD_TAG=v15.0.3-${TYPE}
 ARG BUILD_TAG_VERSION=${BUILD_TAG}-${BUILD_DATE}
 
-#ENV DISABLE_IPV6=true
+ENV DISABLE_IPV6=true
 
 LABEL maintainer=${BUILD_OWNER}
 LABEL org.opencontainers.image.version="${BUILD_TAG_VERSION}"
@@ -101,13 +101,14 @@ RUN apk add --update --no-cache \
     dpkg \
     dumb-init \
     iptables \
-    ip6tables \
-    nftables \
-    kmod \
     iptables-legacy \
-    wireguard-go \
     wireguard-tools \
     mc
+
+#    ip6tables \
+#    nftables \
+#    kmod \
+#    wireguard-go \
 
 # Copy mc profile
 ADD assets/mc.tar.gz /root/.config
@@ -118,15 +119,16 @@ RUN ln -s /etc/wireguard /etc/amnezia/amneziawg
 
 # Use iptables-legacy
 RUN update-alternatives --install /usr/sbin/iptables iptables /usr/sbin/iptables-legacy 10 --slave /usr/sbin/iptables-restore iptables-restore /usr/sbin/iptables-legacy-restore --slave /usr/sbin/iptables-save iptables-save /usr/sbin/iptables-legacy-save
-RUN update-alternatives --install /usr/sbin/ip6tables ip6tables /usr/sbin/ip6tables-legacy 10 --slave /usr/sbin/ip6tables-restore ip6tables-restore /usr/sbin/ip6tables-legacy-restore --slave /usr/sbin/ip6tables-save ip6tables-save /usr/sbin/ip6tables-legacy-save
+#RUN update-alternatives --install /usr/sbin/ip6tables ip6tables /usr/sbin/ip6tables-legacy 10 --slave /usr/sbin/ip6tables-restore ip6tables-restore /usr/sbin/ip6tables-legacy-restore --slave /usr/sbin/ip6tables-save ip6tables-save /usr/sbin/ip6tables-legacy-save
 
+#,Database,CMD,Firewall
 # Set Environment
-ENV DEBUG=Server,WireGuard,Database,CMD,Firewall
+ENV DEBUG=Server,WireGuard
 ENV PORT=8588
 ENV HOST=0.0.0.0
 ENV INSECURE=false
 ENV INIT_ENABLED=false
-ENV DISABLE_IPV6=true
+
 
 LABEL com.docker.compose.service="wg-easy"
 LABEL com.docker.compose.project="wg-easy"
