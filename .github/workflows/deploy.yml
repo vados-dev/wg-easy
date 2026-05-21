@@ -2,8 +2,7 @@ name: Build & Deploy
 
 env:
   DEFAULT_BRANCH: master
-  DEFAULT_IMAGE: wg-easy
-  REGISTRY_IMAGE: ghcr.io/vados-dev/${{ env.DEFAULT_IMAGE }}
+  REGISTRY_IMAGE: ghcr.io/vados-dev/wg-easy
 #  DEFAULT_PUBLISH_REPOS: true
 
 on:
