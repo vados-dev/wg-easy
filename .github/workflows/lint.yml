@@ -1,9 +1,10 @@
 name: Lint
 
 on:
- # push:
-#    branches:
-#      - master
+  push:
+    branches:
+ #     - master
+      - v14
 #  pull_request:
   workflow_dispatch:
 
@@ -15,6 +16,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        ref: v14
 
       - uses: pnpm/action-setup@v6
         name: Install pnpm
