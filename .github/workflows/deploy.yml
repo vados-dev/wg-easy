@@ -50,6 +50,24 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.from_branch || env.DEFAULT_BRANCH }}
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=sha,prefix=-
+          flavor: |
+            latest=true
+              maintainer={{ github.actor }}
+              org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
+              org.opencontainers.image.revision={{commit_short}}
+              org.opencontainers.image.version={{version}}
+              org.opencontainers.image.url={{url}}
+              org.opencontainers.image.source={{url}}
+              org.opencontainers.image.documentation={{url}} 
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -76,13 +94,20 @@ jobs:
           cache-to: type=gha,mode=min,scope=build-${{ env.PLATFORM_PAIR }}
           tags: ${{env.IMAGE}}:${{env.TAG}}
           labels: |
-            - ${{ steps.build.outputs.labels }}
-              maintainer={{ github.actor }}
-              org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
-              org.opencontainers.image.revision={{commit_short}}
-              org.opencontainers.image.version={{version}}
-              org.opencontainers.image.url={{url}}
-              org.opencontainers.image.source={{url}}
-              org.opencontainers.image.documentation={{url}}            
+            ${{ steps.meta.outputs.labels }}
+            org.opencontainers.image.ref.name=${{ steps.meta.outputs.version }}          
           outputs: type=image,push-by-digest=false,name-canonical=true,push=true
 
+      - name: Export digest
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v6
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
