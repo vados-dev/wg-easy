@@ -67,7 +67,6 @@ jobs:
         with:
           context: .
           platforms: ${{inputs.build_platforms}}
-          labels: 
           cache-from: type=gha,scope=build-${{ env.PLATFORM_PAIR }}
           cache-to: type=gha,mode=min,scope=build-${{ env.PLATFORM_PAIR }}
           tags: ghcr.io/vados-dev/${{inputs.build_images}}:latest,
