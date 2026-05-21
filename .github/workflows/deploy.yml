@@ -1,20 +1,18 @@
 name: Build & Deploy
 
-permissions:
-  packages: write
-  contents: read
-  #env:
-  #  DEFAULT_PUBLISH_REPOS: true
+env:
+  DEFAULT_BRANCH: master
+  REGISTRY_IMAGE: ghcr.io/vados-dev/wg-easy
+#  DEFAULT_PUBLISH_REPOS: true
 
 on:
   #  workflow_call:
-  push:
-    branches:
-      - "**"
-    tags:
-      - "v*.*."
   #   schedule:
   #     - cron: "17 * * 3 1"
+  push:
+    branches: [ "master" ]
+    tags: [ "[0-9]+.[0-9]+.[0-9]+", "v15-rb.lts", "v*.*." ]
+
   workflow_dispatch:
     inputs:
       from_branch:
@@ -43,6 +41,10 @@ jobs:
   deploy:
     name: Build & Deploy
     runs-on: ubuntu-latest
+    if: github.repository_owner == 'vados-dev'
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -69,10 +71,13 @@ jobs:
           platforms: ${{inputs.build_platforms}}
           cache-from: type=gha,scope=build-${{ env.PLATFORM_PAIR }}
           cache-to: type=gha,mode=min,scope=build-${{ env.PLATFORM_PAIR }}
-          tags: ghcr.io/vados-dev/${{inputs.build_images}}:latest,
-            ghcr.io/vados-dev/${{inputs.build_images}}:${{inputs.build_tag}}
+          tags: ${{ env.REGISTRY_IMAGE }}
+          tags: |
+            - ghcr.io/vados-dev/${{inputs.build_images}}:latest
+              ghcr.io/vados-dev/${{inputs.build_images}}:${{inputs.build_tag}}
+              ${{ env.REGISTRY_IMAGE }}
           labels: |
-            - ${{ steps.meta.outputs.labels }}
+            - ${{ steps.build.outputs.labels }}
               maintainer={{ github.actor }}
               org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
               org.opencontainers.image.revision={{commit_short}}
