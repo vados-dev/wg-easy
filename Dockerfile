@@ -128,8 +128,6 @@ ENV PORT=8588
 ENV HOST=0.0.0.0
 ENV INSECURE=false
 ENV INIT_ENABLED=false
-
-
 LABEL com.docker.compose.service="wg-easy"
 LABEL com.docker.compose.project="wg-easy"
 
