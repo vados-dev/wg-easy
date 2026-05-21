@@ -11,6 +11,7 @@ jobs:
   docs:
     name: Check Docs
     runs-on: ubuntu-latest
+    if: github.repository_owner == 'vados-dev'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
