@@ -51,7 +51,7 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Build and push Latest Version
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v7
       with:
         context: .
         file: ./Dockerfile
@@ -63,7 +63,7 @@ jobs:
           joxit/docker-registry-ui:${{steps.minor-tag.outputs.tag}}
           joxit/docker-registry-ui:${{steps.patch-tag.outputs.tag}}
     - name: Build and push Latest Debian Version
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v7
       with:
         context: .
         file: ./debian.dockerfile
