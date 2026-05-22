@@ -47,7 +47,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.from_branch ||
             env.DEFAULT_BRANCH }}
