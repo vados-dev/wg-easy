@@ -9,7 +9,7 @@ on:
       - v14
     paths:
       - ".gitignore"
-      - ".github/workflows/deploy.yml"
+      - ".github/workflows/deploy_latest.yml"
 #  schedule:
 #   - cron: "18 2 * * 2"
   workflow_dispatch:
