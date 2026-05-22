@@ -5,8 +5,7 @@ on:
     branches:
       - master
   pull_request:
-      - v14
-  pull_request:
+
   workflow_dispatch:
 
 jobs:
