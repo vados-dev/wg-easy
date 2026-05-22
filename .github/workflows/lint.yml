@@ -1,4 +1,4 @@
-name: Lint 14 master
+name: Lint master
 
 on:
   push:
@@ -16,16 +16,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        ref: v14
+        with:
+          ref: master
 
       - uses: pnpm/action-setup@v6
         name: Install pnpm
         with:
+          ref: master
           run_install: false
 
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
+          ref: master
           node-version: "lts/krypton"
           check-latest: true
           cache: "pnpm"
