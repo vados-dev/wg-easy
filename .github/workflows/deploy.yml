@@ -54,9 +54,8 @@ jobs:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
             type=semver,pattern={{version}}
-            type=sha,prefix=-
           flavor: |
-            latest=true
+            latest=false
           labels: |
             maintainer={{ github.actor }}
             org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
@@ -96,7 +95,7 @@ jobs:
           labels: |
             ${{ steps.meta.outputs.labels }}
             org.opencontainers.image.ref.name=${{ steps.meta.outputs.version }}          
-          outputs: type=image,push-by-digest=false,name-canonical=true,push=true
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
         run: |
