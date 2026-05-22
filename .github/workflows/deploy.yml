@@ -1,9 +1,9 @@
 name: Build & Publish Latest
 
-on:
-  push:
-    branches:
-      - v14
+#on:
+#  push:
+#    branches:
+#      - v14
 
 jobs:
   deploy:
