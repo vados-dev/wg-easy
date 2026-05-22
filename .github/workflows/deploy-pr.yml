@@ -1,13 +1,14 @@
 name: Build Pull Request
 
-#on:
+on:
+  workflow_dispatch: 
 #  pull_request:
 
 jobs:
   deploy:
     name: Build & Deploy
     runs-on: ubuntu-latest
-    if: github.repository_owner == 'wg-easy'
+    if: github.repository_owner == 'vados-dev'
     permissions:
       packages: write
       contents: read
@@ -31,5 +32,5 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         push: false
-        platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8
-        tags: ghcr.io/wg-easy/wg-easy:pr
+        platforms: linux/amd64 #,linux/arm/v6,linux/arm/v7,linux/arm64/v8
+        tags: ghcr.io/vados-dev/wg-easy:pr
