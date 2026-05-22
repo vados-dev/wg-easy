@@ -52,9 +52,8 @@ jobs:
         images: ${{ env.REGISTRY_IMAGE }}
         tags: |
           type=semver,pattern={{version}}
-          type=sha,prefix=-
         flavor: |
-          latest=true
+          latest=false
         labels: |
           maintainer={{ github.actor }}
           org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
@@ -84,10 +83,7 @@ jobs:
         IMAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.build_image || env.REGISTRY_IMAGE }}
       uses: docker/build-push-action@v6
       with:
-        context: .
         platforms: ${{inputs.build_platforms}}
-        cache-from: type=gha,scope=build-${{ env.PLATFORM_PAIR }}
-        cache-to: type=gha,mode=min,scope=build-${{ env.PLATFORM_PAIR }}
         tags: ${{env.IMAGE}}:${{env.TAG}}
         labels: |
           ${{ steps.meta.outputs.labels }}
