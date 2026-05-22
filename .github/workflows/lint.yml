@@ -2,9 +2,9 @@ name: Lint master
 
 on:
   push:
-#    branches:
-#      - master
-#  pull_request:
+    branches:
+      - master
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -15,7 +15,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-        ref: master
+        with:
+          ref: master
 
       - uses: pnpm/action-setup@v6
         name: Install pnpm
