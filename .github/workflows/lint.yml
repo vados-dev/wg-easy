@@ -1,72 +1,28 @@
-name: Lint master
+name: Lint
 
 on:
   push:
     branches:
-      - master
+      - v14
   pull_request:
 
-  workflow_dispatch:
-
 jobs:
-  docs:
-    name: Check Docs
-    runs-on: ubuntu-latest
-    if: github.repository_owner == 'vados-dev'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          ref: master
-
-      - uses: pnpm/action-setup@v6
-        name: Install pnpm
-        with:
-          ref: master
-          run_install: false
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          ref: master
-          node-version: "lts/krypton"
-          check-latest: true
-          cache: "pnpm"
-
-      - name: Check docs formatting
-        run: |
-          pnpm install
-          pnpm format:check:docs
-
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    needs: docs
-
-    strategy:
-      fail-fast: false
-      max-parallel: 3
-      matrix:
-        command: [ "lint", "typecheck", "format:check" ]
-
+    if: github.repository_owner == 'wg-easy'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - uses: pnpm/action-setup@v6
-        name: Install pnpm
-        with:
-          run_install: false
-
+        uses: actions/checkout@v4
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: "lts/krypton"
+          node-version: '20'
           check-latest: true
-          cache: "pnpm"
+          cache: 'npm'
 
-      - name: pnpm ${{ matrix.command }}
+      - name: npm run lint
         run: |
           cd src
-          pnpm install
-          pnpm ${{ matrix.command }}
+          npm ci
+          npm run lint

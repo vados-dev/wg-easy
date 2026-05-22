@@ -1,135 +1,49 @@
-ARG BUILD_DATE
-ARG FROM_REGISTRY=docker.io
-ARG FROM_PATH=library/node
-ARG FROM_TAG=krypton-alpine
-ARG FROM_IMAGE=${FROM_REGISTRY}/${FROM_PATH}:${FROM_TAG}
-FROM ${FROM_IMAGE} AS build
+# As a workaround we have to build on nodejs 18
+# nodejs 20 hangs on build with armv6/armv7
+FROM docker.io/library/node:lts-alpine AS build_node_modules
 
-ARG BUILD_DATE
-ARG FROM_REGISTRY
-ARG FROM_PATH
-ARG FROM_TAG
-ARG FROM_IMAGE
-
-ENV DISABLE_IPV6=true
-
-WORKDIR /app
-
-# update corepack
-RUN npm install --global corepack@latest
-# Install pnpm
-RUN corepack enable pnpm
-
+# Update npm to latest
+RUN npm install -g npm@latest
 
 # Copy Web UI
-COPY src/package.json src/pnpm-lock.yaml src/pnpm-workspace.yaml ./
-RUN pnpm install
-
-# Build UI
-COPY src ./
-RUN pnpm build
-
-# Build amneziawg-tools
-RUN apk add linux-headers build-base go git && \
-    git clone https://github.com/amnezia-vpn/amneziawg-tools.git && \
-    git clone https://github.com/amnezia-vpn/amneziawg-go && \
-    cd amneziawg-go && \
-    make && \
-    cd ../amneziawg-tools/src && \
-    make
-
-FROM ${FROM_IMAGE} AS build-libsql
-
-ARG BUILD_DATE
-ARG FROM_REGISTRY
-ARG FROM_PATH
-ARG FROM_TAG
-ARG FROM_IMAGE
-
-ENV DISABLE_IPV6=true
-
+COPY src /app
 WORKDIR /app
-RUN npm install --no-save --omit=dev libsql
+RUN npm ci --omit=dev &&\
+    mv node_modules /node_modules
 
 # Copy build result to a new image.
 # This saves a lot of disk space.
-FROM ${FROM_IMAGE}
+FROM docker.io/library/node:lts-alpine
+HEALTHCHECK CMD /usr/bin/timeout 5s /bin/sh -c "/usr/bin/wg show | /bin/grep -q interface || exit 1" --interval=1m --timeout=5s --retries=3
+COPY --from=build_node_modules /app /app
 
-ARG BUILD_DATE
-ARG FROM_IMAGE
-# > Our custom ARGs
-# type: rb - ReBuild
-ARG TYPE=rb
-ARG FROM_TAG=v15.0.3
-ARG BUILD_OWNER="AmsterNL"
-ARG BUILD_TAG=v15.0.3-${TYPE}
-ARG BUILD_TAG_VERSION=${BUILD_TAG}-${BUILD_DATE}
+# Move node_modules one directory up, so during development
+# we don't have to mount it in a volume.
+# This results in much faster reloading!
+#
+# Also, some node_modules might be native, and
+# the architecture & OS of your development machine might differ
+# than what runs inside of docker.
+COPY --from=build_node_modules /node_modules /node_modules
 
-ENV DISABLE_IPV6=true
-
-LABEL maintainer=${BUILD_OWNER}
-LABEL org.opencontainers.image.version="${BUILD_TAG_VERSION}"
-LABEL org.opencontainers.image.description="Special image build for update from 14 version"
-LABEL org.opencontainers.image.revision="${BUILD_DATE}.${TYPE}"
-LABEL org.opencontainers.image.source=https://github.com/wg-easy/wg-easy
-
-WORKDIR /app
-
-HEALTHCHECK --interval=1m --timeout=5s --retries=3 CMD /usr/bin/timeout 5s /bin/sh -c "/usr/bin/wg show | /bin/grep -q interface || exit 1"
-
-
-# Copy build
-COPY --from=build /app/.output /app
-# Copy migrations
-COPY --from=build /app/server/database/migrations /app/server/database/migrations
-# libsql (https://github.com/nitrojs/nitro/issues/3328)
-COPY --from=build-libsql /app/node_modules /app/server/node_modules
-
-# cli
-COPY --from=build /app/cli/cli.sh /usr/local/bin/cli
-RUN chmod +x /usr/local/bin/cli
-# Copy amneziawg-go
-COPY --from=build /app/amneziawg-go/amneziawg-go /usr/bin/amneziawg-go
-RUN chmod +x /usr/bin/amneziawg-go
-# Copy amneziawg-tools
-COPY --from=build /app/amneziawg-tools/src/wg /usr/bin/awg
-COPY --from=build /app/amneziawg-tools/src/wg-quick/linux.bash /usr/bin/awg-quick
-RUN chmod +x /usr/bin/awg /usr/bin/awg-quick
+# Copy the needed wg-password scripts
+COPY --from=build_node_modules /app/wgpw.sh /bin/wgpw
+RUN chmod +x /bin/wgpw
 
 # Install Linux packages
-RUN apk add --update --no-cache \
+RUN apk add --no-cache \
     dpkg \
     dumb-init \
     iptables \
     iptables-legacy \
-    nftables \
-    kmod \
-    wireguard-go \
-    wireguard-tools \
-    mc
-
-#    ip6tables \
-
-# Copy mc profile
-ADD assets/mc.tar.gz /root/.config
-COPY assets/modules /etc
-
-RUN mkdir -p /etc/amnezia
-RUN ln -s /etc/wireguard /etc/amnezia/amneziawg
+    wireguard-tools
 
 # Use iptables-legacy
 RUN update-alternatives --install /usr/sbin/iptables iptables /usr/sbin/iptables-legacy 10 --slave /usr/sbin/iptables-restore iptables-restore /usr/sbin/iptables-legacy-restore --slave /usr/sbin/iptables-save iptables-save /usr/sbin/iptables-legacy-save
-#RUN update-alternatives --install /usr/sbin/ip6tables ip6tables /usr/sbin/ip6tables-legacy 10 --slave /usr/sbin/ip6tables-restore ip6tables-restore /usr/sbin/ip6tables-legacy-restore --slave /usr/sbin/ip6tables-save ip6tables-save /usr/sbin/ip6tables-legacy-save
 
-#,Database,CMD,Firewall
 # Set Environment
 ENV DEBUG=Server,WireGuard
-ENV PORT=8588
-ENV HOST=0.0.0.0
-ENV INSECURE=false
-ENV INIT_ENABLED=false
-LABEL com.docker.compose.service="wg-easy"
-LABEL com.docker.compose.project="wg-easy"
 
 # Run Web UI
-CMD ["/usr/bin/dumb-init", "node", "server/index.mjs"]
+WORKDIR /app
+CMD ["/usr/bin/dumb-init", "node", "server.js"]
