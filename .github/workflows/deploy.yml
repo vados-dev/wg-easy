@@ -1,16 +1,41 @@
 name: Build & Publish Latest
 
-#on:
-#  push:
-#    branches:
-#      - v14
+env:
+  DEFAULT_BRANCH: v14
+  REGISTRY_IMAGE: ghcr.io/vados-dev/wg-easy
+on:
+  push:
+    branches:
+      - v14
+    paths:
+      - ".gitignore"
+  schedule:
+    - cron: "18 2 * * 2"
+  workflow_dispatch:
+    inputs:
+      build_image:
+        description: "Image name for buld."
+        required: true
+        default: "ghcr.io/vados-dev/wg-easy"
+        type: string
+      build_tag:
+        description: "Build tag for the Docker image"
+        required: true
+        default: "rb14lts"
+        type: string
+      build_platforms:
+        description: "Build platforms e.g.
+          (linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8)"
+        required: true
+        default: "linux/amd64"
+        type: string
 
 jobs:
   deploy:
     name: Build & Deploy
     runs-on: ubuntu-latest
     if: |
-      github.repository_owner == 'wg-easy' &&
+      github.repository_owner == 'vados-dev' &&
       !contains(github.event.head_commit.message, '!skipci')
     permissions:
       packages: write
@@ -18,8 +43,26 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        ref: v14
-
+        ref: ${{ env.DEFAULT_BRANCH }}
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY_IMAGE }}
+        tags: |
+          type=semver,pattern={{version}}
+          type=sha,prefix=-
+        flavor: |
+          latest=true
+        labels: |
+          maintainer={{ github.actor }}
+          org.opencontainers.image.created={{commit_date 'YYYY-MM-DDTHH:mm:ss.SSS[Z]'}}
+          org.opencontainers.image.revision={{commit_short}}
+          org.opencontainers.image.version={{version}}
+          org.opencontainers.image.url={{url}}
+          org.opencontainers.image.source={{url}}
+          org.opencontainers.image.documentation={{url}}
+            
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
@@ -34,8 +77,18 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build & Publish Docker Image
+      id: build
+      env:
+        TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.build_tag || 'rb15lts' }}
+        IMAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.build_image || env.REGISTRY_IMAGE }}
       uses: docker/build-push-action@v6
       with:
-        push: true
-        platforms: linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8
-        tags: ghcr.io/wg-easy/wg-easy:latest, ghcr.io/wg-easy/wg-easy:14
+        context: .
+        platforms: ${{inputs.build_platforms}}
+        cache-from: type=gha,scope=build-${{ env.PLATFORM_PAIR }}
+        cache-to: type=gha,mode=min,scope=build-${{ env.PLATFORM_PAIR }}
+        tags: ${{env.IMAGE}}:${{env.TAG}}
+        labels: |
+          ${{ steps.meta.outputs.labels }}
+          org.opencontainers.image.ref.name=${{ steps.meta.outputs.version }}          
+        outputs: type=image,push-by-digest=false,name-canonical=true,push=true
