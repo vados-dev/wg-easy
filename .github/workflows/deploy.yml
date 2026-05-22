@@ -9,8 +9,9 @@ on:
       - v14
     paths:
       - ".gitignore"
-  schedule:
-    - cron: "18 2 * * 2"
+      - ".github/workflows/deploy.yml"
+#  schedule:
+#   - cron: "18 2 * * 2"
   workflow_dispatch:
     inputs:
       build_image:
