@@ -1,26 +1,22 @@
-name: Build & Deploy v15
+name: Build & Deploy master
 
 env:
   DEFAULT_BRANCH: master
-  DEFAULT_TAG: v15-rb.lts
+  #  DEFAULT_TAG: v15lts
   REGISTRY_IMAGE: ghcr.io/vados-dev/wg-easy
 #  DEFAULT_PUBLISH_REPOS: true
 
 on:
-  #  workflow_call:
   #   schedule:
   #     - cron: "17 * * 3 1"
   push:
     branches: [ "master" ]
-    tags: [ "[0-9]+.[0-9]+.[0-9]+", "v15-rb.lts", "v*.*." ]
+  pull_request:
+
+  #    tags: [ "[0-9]+.[0-9]+.[0-9]+", "v15-rb.lts", "v*.*." ]
 
   workflow_dispatch:
     inputs:
-      from_branch:
-        description: "Branch for build and deploy"
-        required: true
-        default: "master"
-        type: string
       build_image:
         description: "Image name for buld."
         required: true
@@ -29,7 +25,7 @@ on:
       build_tag:
         description: "Build tag for the Docker image"
         required: true
-        default: "v15-rb.lts"
+        default: "rb15lts"
         type: string
       build_platforms:
         description: "Build platforms e.g.
@@ -49,8 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.from_branch ||
-            env.DEFAULT_BRANCH }}
+          ref: ${{ env.DEFAULT_BRANCH }}
 
       - name: Docker meta
         id: meta
@@ -87,8 +82,8 @@ jobs:
       - name: Build and push Docker image
         id: build
         env:
-          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.build_tag || 'lts'
-            }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.build_tag ||
+            'rb15lts' }}
           IMAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.build_image ||
             env.REGISTRY_IMAGE }}
         uses: docker/build-push-action@v7
