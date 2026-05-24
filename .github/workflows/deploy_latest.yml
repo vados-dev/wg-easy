@@ -1,4 +1,4 @@
-name: Build & Publish Latest
+name: Build & Publish v14 (latest)
 
 env:
   DEFAULT_BRANCH: v14
