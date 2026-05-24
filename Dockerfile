@@ -1,6 +1,11 @@
 # As a workaround we have to build on nodejs 18
 # nodejs 20 hangs on build with armv6/armv7
-FROM docker.io/library/node:lts-alpine AS build_node_modules
+ARG FROM_REGISTRY=docker.io
+ARG FROM_PATH=library/node
+ARG FROM_TAG=lts-alpine
+ARG FROM_IMAGE=${FROM_REGISTRY}/${FROM_PATH}
+FROM ${FROM_IMAGE}:${FROM_TAG} AS build_node_modules
+ARG FROM_IMAGE
 
 # Update npm to latest
 RUN npm install -g npm@latest
@@ -11,6 +16,12 @@ WORKDIR /app
 RUN npm ci --omit=dev &&\
     mv node_modules /node_modules
 
+
+ARG FROM_TAG=krypton-alpine
+FROM ${FROM_IMAGE}:${FROM_TAG} AS build_amnezia
+ARG FROM_IMAGE
+
+WORKDIR /app
 # Build amneziawg-tools
 RUN apk add linux-headers build-base go git && \
     git clone https://github.com/amnezia-vpn/amneziawg-tools.git && \
@@ -22,7 +33,8 @@ RUN apk add linux-headers build-base go git && \
 
     # Copy build result to a new image.
 # This saves a lot of disk space.
-FROM docker.io/library/node:lts-alpine
+ARG FROM_TAG=lts-alpine
+FROM ${FROM_IMAGE}:${FROM_TAG}
 HEALTHCHECK CMD /usr/bin/timeout 5s /bin/sh -c "/usr/bin/wg show | /bin/grep -q interface || exit 1" --interval=1m --timeout=5s --retries=3
 COPY --from=build_node_modules /app /app
 
@@ -40,11 +52,11 @@ COPY --from=build_node_modules /app/wgpw.sh /bin/wgpw
 RUN chmod +x /bin/wgpw
 
 # Copy amneziawg-go
-COPY --from=build /app/amneziawg-go/amneziawg-go /usr/bin/amneziawg-go
+COPY --from=build_amnezia /app/amneziawg-go/amneziawg-go /usr/bin/amneziawg-go
 RUN chmod +x /usr/bin/amneziawg-go
 # Copy amneziawg-tools
-COPY --from=build /app/amneziawg-tools/src/wg /usr/bin/awg
-COPY --from=build /app/amneziawg-tools/src/wg-quick/linux.bash /usr/bin/awg-quick
+COPY --from=build_amnezia /app/amneziawg-tools/src/wg /usr/bin/awg
+COPY --from=build_amnezia /app/amneziawg-tools/src/wg-quick/linux.bash /usr/bin/awg-quick
 RUN chmod +x /usr/bin/awg /usr/bin/awg-quick
 
 # Install Linux packages
