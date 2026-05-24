@@ -16,7 +16,6 @@ WORKDIR /app
 RUN npm ci --omit=dev &&\
     mv node_modules /node_modules
 
-
 ARG FROM_TAG=krypton-alpine
 FROM ${FROM_IMAGE}:${FROM_TAG} AS build_amnezia
 ARG FROM_IMAGE
@@ -60,17 +59,24 @@ COPY --from=build_amnezia /app/amneziawg-tools/src/wg-quick/linux.bash /usr/bin/
 RUN chmod +x /usr/bin/awg /usr/bin/awg-quick
 
 # Install Linux packages
-RUN apk update add --no-cache \
+RUN apk add --no-cache \
     dpkg \
     dumb-init \
     iptables \
+    nftables \
+    kmod \
     iptables-legacy \
     wireguard-tools \
-    amneziawg-tools \
     mc
 
+COPY assets/modules /etc
+
+RUN mkdir -p /etc/amnezia
+RUN ln -s /etc/wireguard /etc/amnezia/amneziawg
+
 # Use iptables-legacy
-RUN update-alternatives --install /usr/sbin/iptables iptables /usr/sbin/iptables-legacy 10 --slave /usr/sbin/iptables-restore iptables-restore /usr/sbin/iptables-legacy-restore --slave /usr/sbin/iptables-save iptables-save /usr/sbin/iptables-legacy-save
+#RUN update-alternatives --install /usr/sbin/iptables iptables /usr/sbin/iptables-legacy 10 --slave /usr/sbin/iptables-restore iptables-restore /usr/sbin/iptables-legacy-restore --slave /usr/sbin/iptables-save iptables-save /usr/sbin/iptables-legacy-save
+RUN update-alternatives --install /usr/sbin/iptables iptables /usr/sbin/nftables 20 --slave /usr/sbin/iptables-restore iptables-restore /usr/sbin/nftables-restore --slave /usr/sbin/iptables-save iptables-save /usr/sbin/nftables-save
 
 # Set Environment
 ENV DEBUG=Server,WireGuard
