@@ -31,18 +31,22 @@ COPY --from=build_node_modules /app/wgpw.sh /bin/wgpw
 RUN chmod +x /bin/wgpw
 
 # Install Linux packages
-RUN apk add --no-cache \
+RUN apk update add --no-cache \
     dpkg \
     dumb-init \
     iptables \
     iptables-legacy \
-    wireguard-tools
+    wireguard-tools \
+    amneziawg-tools \
+    mc
 
 # Use iptables-legacy
 RUN update-alternatives --install /usr/sbin/iptables iptables /usr/sbin/iptables-legacy 10 --slave /usr/sbin/iptables-restore iptables-restore /usr/sbin/iptables-legacy-restore --slave /usr/sbin/iptables-save iptables-save /usr/sbin/iptables-legacy-save
 
 # Set Environment
 ENV DEBUG=Server,WireGuard
+
+ADD assets/mc.tar.gz /root/.config
 
 # Run Web UI
 WORKDIR /app
