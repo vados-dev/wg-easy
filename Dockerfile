@@ -76,7 +76,7 @@ RUN ln -s /etc/wireguard /etc/amnezia/amneziawg
 
 # Use iptables-legacy
 #RUN update-alternatives --install /usr/sbin/iptables iptables /usr/sbin/iptables-legacy 10 --slave /usr/sbin/iptables-restore iptables-restore /usr/sbin/iptables-legacy-restore --slave /usr/sbin/iptables-save iptables-save /usr/sbin/iptables-legacy-save
-RUN update-alternatives --install /usr/sbin/iptables iptables /usr/sbin/nftables 20 --slave /usr/sbin/iptables-restore iptables-restore /usr/sbin/nftables-restore --slave /usr/sbin/iptables-save iptables-save /usr/sbin/nftables-save
+#RUN update-alternatives --install /usr/sbin/iptables iptables /usr/sbin/nftables 20 --slave /usr/sbin/iptables-restore iptables-restore /usr/sbin/nftables-restore --slave /usr/sbin/iptables-save iptables-save /usr/sbin/nftables-save
 
 # Set Environment
 ENV DEBUG=Server,WireGuard
