@@ -22,7 +22,8 @@ ARG FROM_IMAGE
 
 WORKDIR /app
 # Build amneziawg-tools
-RUN apk add linux-headers build-base go git && \
+RUN apk update && apk add --no-cache \
+    linux-headers build-base go git && \
     git clone https://github.com/amnezia-vpn/amneziawg-tools.git && \
     git clone https://github.com/amnezia-vpn/amneziawg-go && \
     cd amneziawg-go && \
@@ -59,7 +60,7 @@ COPY --from=build_amnezia /app/amneziawg-tools/src/wg-quick/linux.bash /usr/bin/
 RUN chmod +x /usr/bin/awg /usr/bin/awg-quick
 
 # Install Linux packages
-RUN apk add --no-cache \
+RUN apk update && apk add --no-cache \
     dpkg \
     dumb-init \
     iptables \
